@@ -29,13 +29,13 @@
   <div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span>Аналитика</div>
   <div class="overline">Рабочее пространство</div>
   <div class="workspace-current">＋ &nbsp; Анализ компании</div>
-  <p class="workspace-rail-note">От постановки задачи<br>до аналитического отчёта.<br><br>Демонстрационная версия</p>
+  <p class="workspace-rail-note">От постановки задачи<br>до аналитического отчёта.</p>
  </aside>
  <div class="start-card">
-  <header class="workspace-topbar"><span>Рабочее пространство &nbsp; / &nbsp; <strong>Анализ компании</strong></span><span><i class="demo-dot"></i>HTML-демо</span></header>
+  <header class="workspace-topbar"><span>Рабочее пространство &nbsp; / &nbsp; <strong>Анализ компании</strong></span></header>
   <ol class="flow-nav" aria-label="Этапы работы"><li id="flow-home" aria-current="step">1. Рабочее пространство</li><li id="flow-request">2. Запрос</li><li id="flow-loading">3. Построение</li><li id="flow-ready">4. Результат</li></ol>
   <section id="start-home" aria-labelledby="home-title">
-   <div class="overline">Рабочее пространство · HTML-демо</div>
+   <div class="overline">Рабочее пространство</div>
    <h1 id="home-title" tabindex="-1">От запроса — к анализу компании</h1>
    <p class="start-description">Поставьте задачу: соберём сведения о компании, разберём отчётность и подготовим результаты в одном интерфейсе.</p>
    <div class="welcome-grid"><div><strong>01 · Запрос</strong>ИНН компании и задача своими словами</div><div><strong>02 · Анализ</strong>Сбор источников, разбор отчётности и оценка рисков</div><div><strong>03 · Результат</strong>Показатели, риски, источники и выгрузка</div></div>
@@ -86,12 +86,11 @@
   <section id="start-ready" aria-labelledby="ready-title" hidden>
    <div class="overline">Построение завершено</div>
    <h1 id="ready-title" tabindex="-1">Отчёт готов</h1>
-   <p class="start-description">Демонстрационный анализ ПАО «НОВАТЭК» построен. Откройте результаты, изучите показатели и риски, проверьте источники или выгрузите данные.</p>
+   <p class="start-description">Анализ ПАО «НОВАТЭК» построен. Откройте результаты, изучите показатели и риски, проверьте источники или выгрузите данные.</p>
    <p class="request-preview" id="ready-query"></p>
    <div class="welcome-grid"><div><strong id="ready-metrics"></strong>финансовых и операционных показателей</div><div><strong id="ready-risks"></strong>рисков и мер минимизации</div><div><strong id="ready-sources"></strong>источников с публикациями</div></div>
    <div class="form-actions"><button class="btn primary" id="open-results">Открыть результаты →</button><button class="btn" id="edit-request">Изменить запрос</button></div>
   </section>
-  <p class="demo-note">Демонстрационный режим: загрузка имитируется, запросы не отправляются. Для любого ИНН откроется готовый анализ ПАО «НОВАТЭК».</p>
  </div>
 </main>
 <div class="app" id="analytics-app" hidden>
@@ -102,10 +101,10 @@
  <div class="sidebar-foot"><div class="file"><span class="file-icon">XLS</span><span>analysis.xlsx</span></div><span id="file-summary"></span><p>Данные встроены в HTML.<br>Доступны без подключения к сети.</p></div>
 </aside>
 <main class="main">
- <header class="topbar"><div class="breadcrumbs">Компании &nbsp; / &nbsp; <strong>НОВАТЭК</strong> &nbsp; / &nbsp; <span id="crumb">Метрики</span></div><div class="top-actions"><button class="btn" id="new-request" type="button">← Выбрать компанию</button><span><i class="demo-dot"></i>HTML-демо</span><div class="avatar" aria-hidden="true">НК</div></div></header>
+ <header class="topbar"><div class="breadcrumbs">Компании &nbsp; / &nbsp; <strong>НОВАТЭК</strong> &nbsp; / &nbsp; <span id="crumb">Метрики</span></div><div class="top-actions"><button class="btn" id="new-request" type="button">← Выбрать компанию</button><div class="avatar" aria-hidden="true">НК</div></div></header>
  <div class="content">
   <div class="page-heading"><div><div class="overline">Анализ компании</div><h1 id="page-title">Метрики компании</h1><p class="subtitle" id="page-subtitle">ПАО «НОВАТЭК» · Нефтегазовая промышленность</p></div><div class="heading-actions"><button class="btn" id="print-btn"></button><button class="btn primary" id="export-btn"></button></div></div>
-  <details class="card result-summary"><summary>Запрос и результат построения</summary><p id="result-query"></p><p class="label">Демонстрационный отчёт: данные НОВАТЭКа из analysis.xlsx. Сбор и анализ имитируются; содержимое отчёта не меняется от текста запроса или ИНН.</p></details>
+  <details class="card result-summary"><summary>Запрос и результат построения</summary><p id="result-query"></p><p class="label">Данные ПАО «НОВАТЭК» из analysis.xlsx.</p></details>
   <section id="metrics" class="view active" aria-label="Метрики"></section>
   <section id="risks" class="view" aria-label="Риски"></section>
   <section id="ifrs" class="view" aria-label="Отчетность МСФО"></section>
