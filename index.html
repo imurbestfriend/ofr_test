@@ -49,11 +49,11 @@
     <form id="inn-form">
      <div class="request-composer">
       <label class="composer-label" for="analysis-query">Задача для аналитика</label>
-      <textarea class="query-input" id="analysis-query" name="query" required maxlength="2000" placeholder="Проанализируй финансовое состояние компании. Какие риски стоит учесть и что говорят показатели отчётности?" aria-describedby="query-hint"></textarea>
+      <textarea class="query-input" id="analysis-query" name="query" required maxlength="2000" placeholder="Введите запрос для анализа…" aria-describedby="query-hint"></textarea>
       <div class="composer-bottom">
        <div class="company-context">
         <label for="company-inn">Компания · ИНН</label>
-        <input class="inn-input" id="company-inn" name="inn" type="text" inputmode="numeric" pattern="[0-9]{10}" minlength="10" maxlength="10" placeholder="6316031581" required autocomplete="off" aria-describedby="inn-hint" title="Введите ИНН юридического лица: 10 цифр">
+        <input class="inn-input" id="company-inn" name="inn" type="text" inputmode="numeric" pattern="[0-9]{10}" minlength="10" maxlength="10" placeholder="Введите ИНН" required autocomplete="off" aria-describedby="inn-hint" title="Введите ИНН юридического лица: 10 цифр">
        </div>
        <button class="btn primary" type="submit">Построить анализ ↗</button>
       </div>
