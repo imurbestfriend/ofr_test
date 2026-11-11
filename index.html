@@ -142,7 +142,7 @@ const collected=info.find(r=>r[0]==='Материалы собраны')?.[1];
 $('#collected').textContent=collected?new Date(collected).toLocaleDateString('ru-RU'):'не указано';
 $('#file-summary').textContent=`${DATA.sheets.length} листов · ${metrics.length} метрика`;
 $('#print-btn').innerHTML=icon('print')+'Печать';
-$('#export-btn').innerHTML=icon('download')+'Скачать CSV';
+$('#export-btn').textContent='↓ Скачать XLSX';
 $('#nav').innerHTML=navigation.map(([id,label])=>`<button data-view="${id}" class="${id===active?'active':''}" ${id===active?'aria-current="page"':''}>${icon(id)}${label}${['metrics','risks','sources'].includes(id)?`<span class="count">${({metrics:metrics.length,risks:risks.length,sources:sources.length})[id]}</span>`:''}</button>`).join('');
 
 function navigate(id){if(!navigation.some(v=>v[0]===id))id='metrics';active=id;document.querySelectorAll('.view').forEach(e=>e.classList.toggle('active',e.id===id));document.querySelectorAll('[data-view]').forEach(e=>{e.classList.toggle('active',e.dataset.view===id);if(e.dataset.view===id)e.setAttribute('aria-current','page');else e.removeAttribute('aria-current')});const def=navigation.find(v=>v[0]===id);$('#page-title').textContent=def[2];$('#crumb').textContent=def[1];$('#page-subtitle').textContent=({metrics:`${metrics.length} запись из книги · исходные периоды и единицы измерения`,risks:`${risks.length} записей · уровни и формулировки из книги`,ifrs:'Годовые и промежуточные данные · значения и единицы как в книге',sources:'Публикации и ссылки, сохранённые в исходном файле',company:'Профиль компании, бизнес и отраслевой контекст'})[id]||'ПАО «НОВАТЭК» · Нефтегазовая промышленность';history.replaceState(null,'','#'+id)}
@@ -172,14 +172,49 @@ function renderSources(){$('#sources').innerHTML=`<div class="notice">${sources.
 function renderCompany(){const categories=['Компания','Бизнес','Отрасль'];$('#company').innerHTML=`<div class="about-grid"><div>${categories.map(c=>`<article class="card prose-card"><h2>${c}</h2>${info.filter(r=>r[0]===c&&String(r[1]).length>80).map(r=>`<p>${esc(r[1]).replace(/\[S(\d+)\]/g,'<button class="source-link" data-source="$1">[S$1]</button>')}</p>`).join('')}</article>`).join('')}</div><aside class="card meta-card"><dl>${info.slice(0,5).map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl><button class="btn" data-go="sources">Все источники →</button></aside></div>`}
 function showSource(code){const r=sources.find(s=>s[0]===`[S${code}]`);if(!r)return;showDialog('analysis.xlsx / Источники RAEX',`<span class="source-code">${esc(r[0])}</span><h2 style="margin-top:18px">${esc(r[1])}</h2><p>${esc(r[2]||'Дата публикации не указана')}</p><a class="btn primary" href="${esc(safeUrl(r[4]))}" target="_blank" rel="noopener noreferrer">Открыть публикацию ↗</a>`)}
 
-function exportCsv(){let rows,name;if(active==='risks'){name='risks';rows=[sheet('Риски')[0],...filteredRisks().map(r=>[r.level,r.raw,r.description,r.mitigation])]}else if(active==='ifrs'){name='ifrs';const cols=ifrsColumns(),q=$('#ifrs-search').value.trim().toLocaleLowerCase('ru');rows=[['Статья',...cols.map(c=>ifrs[1][c])],...ifrs.filter(r=>r[0]&&r[0]!=='Статья'&&(!q||String(r[0]).toLocaleLowerCase('ru').includes(q))).map(r=>[r[0],...cols.map(c=>r[c])])]}else if(active==='sources'){name='sources';rows=sheet('Источники RAEX')}else if(active==='company'){name='company';rows=sheet('Описание компании')}else{name='metrics';rows=[sheet('Метрики')[0],...(active==='metrics'?filteredMetrics():metrics).map(m=>[m.name,m.period,m.value,m.unit,m.quote])]}
-// Prevent spreadsheet applications from executing cell text as formulas.
-const cell=v=>{let s=String(v??'');if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'};
-const csv='\uFEFF'+rows.map(r=>r.map(cell).join(';')).join('\r\n'),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));const a=document.createElement('a');a.href=url;a.download=`analysis_${name}.csv`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function exportXlsx(){let rows,name;if(active==='risks'){name='risks';rows=[sheet('Риски')[0],...filteredRisks().map(r=>[r.level,r.raw,r.description,r.mitigation])]}else if(active==='ifrs'){name='ifrs';const cols=ifrsColumns(),q=$('#ifrs-search').value.trim().toLocaleLowerCase('ru');rows=[['Статья',...cols.map(c=>ifrs[1][c])],...ifrs.filter(r=>r[0]&&r[0]!=='Статья'&&(!q||String(r[0]).toLocaleLowerCase('ru').includes(q))).map(r=>[r[0],...cols.map(c=>r[c])])]}else if(active==='sources'){name='sources';rows=sheet('Источники RAEX')}else if(active==='company'){name='company';rows=sheet('Описание компании')}else{name='metrics';rows=[sheet('Метрики')[0],...(active==='metrics'?filteredMetrics():metrics).map(m=>[m.name,m.period,m.value,m.unit,m.quote])]}
+const url=URL.createObjectURL(buildXlsx(rows));const a=document.createElement('a');a.href=url;a.download=`analysis_${name}.xlsx`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+
+// Minimal OOXML workbook in an uncompressed ZIP, so the demo stays offline.
+function buildXlsx(rows){
+ const xml=v=>String(v??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+ const column=i=>{let s='';for(i++;i;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s};
+ const data=rows.map((row,r)=>`<row r="${r+1}">${row.map((v,c)=>{
+  const ref=column(c)+(r+1);
+  if(typeof v==='number'&&Number.isFinite(v))return `<c r="${ref}"><v>${v}</v></c>`;
+  // Inline strings never execute as formulas, even when starting with '='.
+  return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xml(v)}</t></is></c>`;
+ }).join('')}</row>`).join('');
+ const files={
+  '[Content_Types].xml':'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+  '_rels/.rels':'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+  'xl/workbook.xml':'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Анализ" sheetId="1" r:id="rId1"/></sheets></workbook>',
+  'xl/_rels/workbook.xml.rels':'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+  'xl/worksheets/sheet1.xml':`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${data}</sheetData></worksheet>`
+ };
+ const encoder=new TextEncoder(),parts=[],directory=[];
+ let offset=0;
+ const header=size=>{const bytes=new Uint8Array(size);return {bytes,view:new DataView(bytes.buffer)}};
+ for(const [path,content] of Object.entries(files)){
+  const name=encoder.encode(path),body=encoder.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+content);
+  let crc=0xffffffff;
+  for(const byte of body){crc^=byte;for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0)}
+  crc=(crc^0xffffffff)>>>0;
+  const local=header(30),central=header(46);
+  local.view.setUint32(0,0x04034b50,true);local.view.setUint16(4,20,true);local.view.setUint16(12,33,true);
+  local.view.setUint32(14,crc,true);local.view.setUint32(18,body.length,true);local.view.setUint32(22,body.length,true);local.view.setUint16(26,name.length,true);
+  central.view.setUint32(0,0x02014b50,true);central.view.setUint16(4,20,true);central.view.setUint16(6,20,true);central.view.setUint16(14,33,true);
+  central.view.setUint32(16,crc,true);central.view.setUint32(20,body.length,true);central.view.setUint32(24,body.length,true);central.view.setUint16(28,name.length,true);central.view.setUint32(42,offset,true);
+  parts.push(local.bytes,name,body);directory.push(central.bytes,name);offset+=30+name.length+body.length;
+ }
+ const directorySize=directory.reduce((sum,part)=>sum+part.length,0),end=header(22),count=Object.keys(files).length;
+ end.view.setUint32(0,0x06054b50,true);end.view.setUint16(8,count,true);end.view.setUint16(10,count,true);end.view.setUint32(12,directorySize,true);end.view.setUint32(16,offset,true);
+ return new Blob([...parts,...directory,end.bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
 
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.view)navigate(b.dataset.view);if(b.dataset.go)navigate(b.dataset.go);if(b.dataset.metric)showMetric(b.dataset.metric);if(b.dataset.ifrs)showIfrs(b.dataset.ifrs);if(b.dataset.risk)showRisk(b.dataset.risk);if(b.dataset.source)showSource(b.dataset.source);});
 $('#detail .close').onclick=()=>$('#detail').close();$('#detail').addEventListener('click',e=>{if(e.target===$('#detail')){const r=$('#detail').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('#detail').close()}});
-$('#print-btn').onclick=()=>window.print();$('#export-btn').onclick=exportCsv;
+$('#print-btn').onclick=()=>window.print();$('#export-btn').onclick=exportXlsx;
 initMetrics();initRisks();initIfrs();renderSources();renderCompany();navigate(location.hash.slice(1)||'metrics');
 let analysisTimer=null;
 const processSteps=[...document.querySelectorAll('#process-list li')];
